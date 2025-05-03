@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "deploy:enregistrement": "gcloud functions deploy enregistrement-2 --region=us-central1 --runtime=nodejs22 --trigger-bucket=images-depot --trigger-location=eu --entry-point=helloGCS --source=.",
+    "deploy:analyse": "gcloud functions deploy analyse --region=us-central1 --runtime=nodejs22 --trigger-bucket=imgs-public --trigger-location=europe-west1 --entry-point=analyse --source=. "
+  },
   "dependencies": {
     "@google-cloud/functions-framework": "^3.0.0",
     "@google-cloud/storage": "^7.16.0",

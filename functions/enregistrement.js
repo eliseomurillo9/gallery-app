@@ -1,6 +1,6 @@
 const functions = require("@google-cloud/functions-framework");
 const { Storage } = require("@google-cloud/storage");
-const mysql = require("promise-mysql");
+const { executeQuery } = require("../outils/dataBase");
 const sharp = require("sharp");
 const storage = new Storage();
 
@@ -21,9 +21,7 @@ functions.cloudEvent("helloGCS", async (cloudEvent) => {
   }
 
   try {
-    const bucket = storage.bucket(bucketName);
-    const fileObject = bucket.file(objectName);
-    const [buffer] = await fileObject.download();
+    const [buffer] = storage.bucket(bucketName).file(objectName).download();
     const image = await resizeImage(buffer);
 
     console.log("Resized image: ", image);
@@ -109,32 +107,12 @@ const resizeImage = async (buffer) => {
   }
 };
 
-const DBConnection = async () => {
-  try {
-    return mysql.createConnection({
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      socketPath: process.env.DB_SOCKET_PATH,
-    });
-  } catch (error) {
-    console.error("Error connecting to database: ", error);
-    throw new Error({
-      message: "Error connecting to database",
-      details: error,
-    });
-  }
-};
-
 const addImageToDB = async (imagePath) => {
-  console.log("Adding image to database", imagePath);
-  const connection = await DBConnection();
   const tableName = "photos";
-
   const sql = `INSERT INTO ${tableName} (url) VALUES (?)`;
   const values = [imagePath];
   try {
-    const result = await connection.query(sql, values);
+    const result = await executeQuery(sql, values);
     console.log("Image added to database: ", result);
   } catch (error) {
     console.error("Error adding image to database: ", error);
